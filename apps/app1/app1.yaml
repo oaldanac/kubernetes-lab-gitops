@@ -1,0 +1,129 @@
+# ============================================================
+# Namespace
+# ============================================================
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo
+
+---
+
+# ============================================================
+# Deployment
+# ============================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app1
+  namespace: demo
+
+spec:
+
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: app1
+
+  template:
+
+    metadata:
+      labels:
+        app: app1
+
+    spec:
+
+      containers:
+
+        - name: nginx
+
+          image: nginx:alpine
+
+          imagePullPolicy: IfNotPresent
+
+          ports:
+
+            - name: http
+              containerPort: 80
+
+          resources:
+
+            requests:
+              cpu: 50m
+              memory: 32Mi
+
+            limits:
+              cpu: 200m
+              memory: 128Mi
+
+---
+
+# ============================================================
+# Service
+# ============================================================
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: app1
+  namespace: demo
+
+spec:
+
+  type: ClusterIP
+
+  selector:
+    app: app1
+
+  ports:
+
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+
+# ============================================================
+# Ingress
+# ============================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: app1
+  namespace: demo
+
+  annotations:
+    nginx.org/ssl-redirect: "true"
+
+spec:
+
+  ingressClassName: nginx
+
+  tls:
+    - hosts:
+        - app1.local
+      secretName: app1-tls
+
+  rules:
+
+    - host: app1.local
+
+      http:
+
+        paths:
+
+          - path: /
+            pathType: Prefix
+
+            backend:
+
+              service:
+                name: app1
+
+                port:
+                  number: 80
