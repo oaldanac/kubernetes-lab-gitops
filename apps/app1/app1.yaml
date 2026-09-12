@@ -39,7 +39,7 @@ spec:
 
         - name: nginx
 
-          image: nginx:alpine
+          image: nginx:1.29-alpine
 
           imagePullPolicy: IfNotPresent
 
@@ -55,7 +55,7 @@ spec:
               memory: 32Mi
 
             limits:
-              cpu: 200m
+              cpu: 300m
               memory: 128Mi
 
 ---
